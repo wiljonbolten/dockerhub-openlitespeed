@@ -4,44 +4,44 @@ PHP_VERSION=''
 PUSH=''
 CONFIG=''
 TAG=''
-BUILDER='litespeedtech'
-REPO='openlitespeed'
+BUILDER='wiljonbolten'
+REPO='uber-openlitespeed'
 EPACE='        '
 
-echow(){
+echow() {
     FLAG=${1}
     shift
     echo -e "\033[1m${EPACE}${FLAG}\033[0m${@}"
 }
 
-help_message(){
-    echo -e "\033[1mOPTIONS\033[0m" 
+help_message() {
+    echo -e "\033[1mOPTIONS\033[0m"
     echow '-O, --ols [VERSION] -P, --php [lsphpVERSION]'
-    echo "${EPACE}${EPACE}Example: bash build.sh --ols 1.7.11 --php lsphp80"
+    echo "${EPACE}${EPACE}Example: bash build.sh --ols 1.7.15 --php lsphp80"
     echow '--push'
-    echo "${EPACE}${EPACE}Example: build.sh --ols 1.7.11 --php lsphp80 --push, will push to the dockerhub"
+    echo "${EPACE}${EPACE}Example: build.sh --ols 1.7.15 --php lsphp80 --push, will push to the dockerhub"
     exit 0
 }
 
-check_input(){
+check_input() {
     if [ -z "${1}" ]; then
         help_message
     fi
 }
 
-build_image(){
+build_image() {
     if [ -z "${1}" ] || [ -z "${2}" ]; then
         help_message
     else
         echo "${1} ${2}"
         docker build . --tag ${BUILDER}/${REPO}:${1}-${2} --build-arg OLS_VERSION=${1} --build-arg PHP_VERSION=${2}
-    fi    
+    fi
 }
 
-test_image(){
+test_image() {
     ID=$(docker run -d ${BUILDER}/${REPO}:${1}-${2})
-    docker exec -i ${ID} su -c 'mkdir -p /var/www/vhosts/localhost/html/ \
-    && echo "<?php phpinfo();" > /var/www/vhosts/localhost/html/index.php \
+    docker exec -i ${ID} su -c 'mkdir -p /var/www/vhosts/localhost/public_html/ \
+    && echo "<?php phpinfo();" > /var/www/vhosts/localhost/public_html/index.php \
     && /usr/local/lsws/bin/lswsctrl restart'
     sleep 5
     HTTP=$(docker exec -i ${ID} curl -s -o /dev/null -Ik -w "%{http_code}" http://localhost)
@@ -53,14 +53,14 @@ test_image(){
         echo "https://localhost returned ${HTTPS}"
         exit 1
     else
-        echo '[O] Tests passed!' 
+        echo '[O] Tests passed!'
     fi
 }
 
-push_image(){
+push_image() {
     if [ ! -z "${PUSH}" ]; then
-        if [ -f ~/.docker/litespeedtech/config.json ]; then
-            CONFIG=$(echo --config ~/.docker/litespeedtech)
+        if [ -f ~/.docker/uberhub/config.json ]; then
+            CONFIG=$(echo --config ~/.docker/uberhub)
         fi
         docker ${CONFIG} push ${BUILDER}/${REPO}:${1}-${2}
         if [ ! -z "${TAG}" ]; then
@@ -68,11 +68,11 @@ push_image(){
             docker ${CONFIG} push ${BUILDER}/${REPO}:${3}
         fi
     else
-        echo 'Skip Push.'    
+        echo 'Skip Push.'
     fi
 }
 
-main(){
+main() {
     build_image ${OLS_VERSION} ${PHP_VERSION}
     test_image ${OLS_VERSION} ${PHP_VERSION}
     push_image ${OLS_VERSION} ${PHP_VERSION} ${TAG}
@@ -81,26 +81,30 @@ main(){
 check_input ${1}
 while [ ! -z "${1}" ]; do
     case ${1} in
-        -[hH] | -help | --help)
-            help_message
-            ;;
-        -[oO] | -ols | --ols) shift
-            check_input "${1}"
-            OLS_VERSION="${1}"
-            ;;
-        -[pP] | -php | --php) shift
-            check_input "${1}"
-            PHP_VERSION="${1}"
-            ;;
-        -[tT] | -tag | -TAG | --tag) shift
-            TAG="${1}"
-            ;;       
-        --push ) shift
-            PUSH=true
-            ;;            
-        *) 
-            help_message
-            ;;              
+    -[hH] | -help | --help)
+        help_message
+        ;;
+    -[oO] | -ols | --ols)
+        shift
+        check_input "${1}"
+        OLS_VERSION="${1}"
+        ;;
+    -[pP] | -php | --php)
+        shift
+        check_input "${1}"
+        PHP_VERSION="${1}"
+        ;;
+    -[tT] | -tag | -TAG | --tag)
+        shift
+        TAG="${1}"
+        ;;
+    --push)
+        shift
+        PUSH=true
+        ;;
+    *)
+        help_message
+        ;;
     esac
     shift
 done
