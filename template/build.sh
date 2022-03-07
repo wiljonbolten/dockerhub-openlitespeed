@@ -67,8 +67,8 @@ push_image() {
 
         docker ${CONFIG} push ${BUILDER}/${REPO}:${1}-${2}
 
-        docker tag ${BUILDER}/${REPO}:${1}-${2} ${BUILDER}/${REPO}:${2}
-        docker ${CONFIG} push ${BUILDER}/${REPO}:${2}
+        docker tag ${BUILDER}/${REPO}:${1}-${2} ${BUILDER}/${REPO}:${2}-latest
+        docker ${CONFIG} push ${BUILDER}/${REPO}:${2}-latest
 
         if [ ! -z "${TAG}" ]; then
             docker tag ${BUILDER}/${REPO}:${1}-${2} ${BUILDER}/${REPO}:${3}
