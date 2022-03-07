@@ -1,13 +1,18 @@
 name: docker-build
 
 ? on
-: ? push
+: ? schedule
+  : - cron: "0 3 * * *"
+  ? push
   : ? branches
-    : - master
-
+    : [
+        master,
+      ]
   ? pull_request
   : ? branches
-    : - master
+    : [
+        master,
+      ]
 ? env
 : FOLDER: template
 
