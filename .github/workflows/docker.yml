@@ -19,7 +19,6 @@ name: docker-build
     : ? matrix
       : ? PHP_VERSION
         : [
-            php73,
             php74,
             php80,
             php81,
