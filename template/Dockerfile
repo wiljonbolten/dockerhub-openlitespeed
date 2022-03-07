@@ -23,7 +23,6 @@ RUN wget https://openlitespeed.org/preuse/openlitespeed-$OLS_VERSION.tgz && \
 RUN apt-get install \
     mysql-client \
     $PHP_VERSION \
-    $PHP_VERSION-apcu \
     $PHP_VERSION-common \
     $PHP_VERSION-curl \
     $PHP_VERSION-imagick \
