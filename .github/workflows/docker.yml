@@ -23,9 +23,9 @@ name: docker-build
     : ? matrix
       : ? PHP_VERSION
         : [
-            lsphp74,
-            lsphp80,
-            lsphp81,
+            php74,
+            php80,
+            php81,
           ]
         ? TAG
         : [
