@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-OLS_VERSION=''
+OLSVERSION="$(curl --silent "https://api.github.com/repos/litespeedtech/openlitespeed/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')" && OLSVERSION="$(echo "$OLSVERSION" | sed 's/^v//' | sed 's/^\.1/1/')" && if curl -s --head --request GET "https://github.com/litespeedtech/openlitespeed/releases/download/v${OLSVERSION}/openlitespeed-${OLSVERSION}.tgz" | grep "404" >/dev/null; then OLS_VERSION="${OLSVERSION%.*}"; else OLS_VERSION="${OLSVERSION}"; fi
+
 PHP_VERSION=''
 PUSH=''
 CONFIG=''
@@ -16,14 +17,15 @@ echow() {
 
 help_message() {
     echo -e "\033[1mOPTIONS\033[0m"
-    echow '-O, --ols [VERSION] -P, --php [lsphpVERSION]'
-    echo "${EPACE}${EPACE}Example: bash build.sh --ols 1.7.15 --php lsphp80"
+    echow '-P, --php [lsphpVERSION]'
+    echo "${EPACE}${EPACE}Example: bash build.sh --php php80"
     echow '--push'
-    echo "${EPACE}${EPACE}Example: build.sh --ols 1.7.15 --php lsphp80 --push, will push to the dockerhub"
+    echo "${EPACE}${EPACE}Example: build.sh --php php80 --push, will push to the dockerhub"
     exit 0
 }
 
 check_input() {
+    echo "Check: ${1}"
     if [ -z "${1}" ]; then
         help_message
     fi
@@ -62,7 +64,12 @@ push_image() {
         if [ -f ~/.docker/uberhub/config.json ]; then
             CONFIG=$(echo --config ~/.docker/uberhub)
         fi
+
         docker ${CONFIG} push ${BUILDER}/${REPO}:${1}-${2}
+
+        docker tag ${BUILDER}/${REPO}:${1}-${2} ${BUILDER}/${REPO}:${2}
+        docker ${CONFIG} push ${BUILDER}/${REPO}:${2}
+
         if [ ! -z "${TAG}" ]; then
             docker tag ${BUILDER}/${REPO}:${1}-${2} ${BUILDER}/${REPO}:${3}
             docker ${CONFIG} push ${BUILDER}/${REPO}:${3}
@@ -83,11 +90,6 @@ while [ ! -z "${1}" ]; do
     case ${1} in
     -[hH] | -help | --help)
         help_message
-        ;;
-    -[oO] | -ols | --ols)
-        shift
-        check_input "${1}"
-        OLS_VERSION="${1}"
         ;;
     -[pP] | -php | --php)
         shift

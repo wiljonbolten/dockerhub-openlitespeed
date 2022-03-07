@@ -10,7 +10,6 @@ name: docker-build
     : - master
 ? env
 : FOLDER: template
-  OLS_VERSION: 1.7.15
 
 ? jobs
 : ? test
@@ -19,9 +18,9 @@ name: docker-build
     : ? matrix
       : ? PHP_VERSION
         : [
-            php74,
-            php80,
-            php81,
+            lsphp74,
+            lsphp80,
+            lsphp81,
           ]
         ? TAG
         : [
@@ -36,7 +35,7 @@ name: docker-build
         : |
           echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
           cd ${{ env.FOLDER }}
-          bash build.sh --ols ${{ env.OLS_VERSION }} --php ls${{ matrix.PHP_VERSION }} --tag "${{ matrix.TAG }}" --push
+          bash build.sh --php ${{ matrix.PHP_VERSION }} --tag "${{ matrix.TAG }}" --push
         ? env
         : DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
@@ -45,4 +44,4 @@ name: docker-build
         ? run
         : |
           cd ${{ env.FOLDER }}
-          bash build.sh --ols ${{ env.OLS_VERSION }} --php ls${{ matrix.PHP_VERSION }} --tag ${{ matrix.TAG }}
+          bash build.sh --php ${{ matrix.PHP_VERSION }} --tag ${{ matrix.TAG }}
